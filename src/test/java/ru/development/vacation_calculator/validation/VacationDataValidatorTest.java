@@ -93,23 +93,13 @@ class VacationDataValidatorTest {
         when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
         when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
-        assertThrows(InvalidVacationDatesException.class, new Executable() {
-            @Override
-            public void execute() throws Throwable {
-                vacationDataValidator.validate(vacationDataStartsAtHolidays);
-            }
-        });
+        assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationDataStartsAtHolidays));
     }
 
 
     @Test
     void validateTest_whenDaysAndStartNull_thenInvalidVacationDatesExceptionExceptionIsThrown() {
-        assertThrows(InvalidVacationDatesException.class, new Executable() {
-            @Override
-            public void execute() throws Throwable {
-                vacationDataValidator.validate(vacationDataWithoutDaysAndStart);
-            }
-        });
+        assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationDataWithoutDaysAndStart));
     }
 
     @Test
@@ -117,12 +107,7 @@ class VacationDataValidatorTest {
         when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
         when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
-        assertThrows(InvalidVacationDatesException.class, new Executable() {
-            @Override
-            public void execute() throws Throwable {
-                vacationDataValidator.validate(vacationWithVacationDaysMoreThanDaysInPeriod);
-            }
-        });
+        assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysMoreThanDaysInPeriod));
     }
 
     @Test
@@ -130,12 +115,7 @@ class VacationDataValidatorTest {
         when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
         when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
-        assertThrows(InvalidVacationDatesException.class, new Executable() {
-            @Override
-            public void execute() throws Throwable {
-                vacationDataValidator.validate(vacationWithVacationDaysFewerThanDaysInPeriod);
-            }
-        });
+        assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysFewerThanDaysInPeriod));
     }
 
     @Test
@@ -143,12 +123,7 @@ class VacationDataValidatorTest {
         when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 1);
         when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
-        assertThrows(InvalidVacationDatesException.class, new Executable() {
-            @Override
-            public void execute() throws Throwable {
-                vacationDataValidator.validate(vacationWithVacationDaysFewerThanDaysInPeriodWithBankHolidays);
-            }
-        });
+        assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysFewerThanDaysInPeriodWithBankHolidays));
     }
 
     @Test
@@ -156,11 +131,6 @@ class VacationDataValidatorTest {
         when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 1);
         when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
-        assertThrows(InvalidVacationDatesException.class, new Executable() {
-            @Override
-            public void execute() throws Throwable {
-                vacationDataValidator.validate(vacationWithVacationDaysMoreThanDaysInPeriodWithBankHolidays);
-            }
-        });
+        assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysMoreThanDaysInPeriodWithBankHolidays));
     }
 }
