@@ -3,12 +3,11 @@ package ru.development.vacation_calculator.validation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.development.vacation_calculator.exceptions.InvalidVacationDatesException;
+import ru.development.vacation_calculator.service.HolidaysChecker;
 import ru.development.vacation_calculator.model.VacationData;
-import ru.development.vacation_calculator.supportclasses.BankHolidays;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -19,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VacationDataValidatorTest {
-    private static BankHolidays bankHolidays;
+    private static HolidaysChecker holidaysChecker;
     private static VacationDataValidator vacationDataValidator;
 
     private static VacationData validObject;
@@ -32,8 +31,8 @@ class VacationDataValidatorTest {
 
     @BeforeAll
     static void setUp() {
-        bankHolidays = Mockito.mock(BankHolidays.class);
-        vacationDataValidator = new VacationDataValidator(bankHolidays, (short) 2024);
+        holidaysChecker = Mockito.mock(HolidaysChecker.class);
+        vacationDataValidator = new VacationDataValidator(holidaysChecker, (short) 2024);
 
         validObject = VacationData.builder().salary(600000.0)
                 .vacationDays(10)
@@ -82,16 +81,16 @@ class VacationDataValidatorTest {
 
     @Test
     void validateTest_whenValidObjectPassed_thenNoExceptionIsThrown() {
-        when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
-        when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
+        when(holidaysChecker.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn(0);
+        when(holidaysChecker.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
         vacationDataValidator.validate(validObject);
     }
 
     @Test
     void validateTest_whenVacationStartsAtHoliday_thenInvalidVacationDatesExceptionExceptionIsThrown() {
-        when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
-        when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
+        when(holidaysChecker.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn(0);
+        when(holidaysChecker.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
         assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationDataStartsAtHolidays));
     }
@@ -104,32 +103,32 @@ class VacationDataValidatorTest {
 
     @Test
     void validateTest_whenVacationDaysMoreThanDaysInDefinedPeriod_thenInvalidVacationDatesExceptionExceptionIsThrown() {
-        when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
-        when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
+        when(holidaysChecker.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn(0);
+        when(holidaysChecker.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
         assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysMoreThanDaysInPeriod));
     }
 
     @Test
     void validateTest_whenVacationDaysFewerThanDaysInDefinedPeriod_thenInvalidVacationDatesExceptionExceptionIsThrown() {
-        when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 0);
-        when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
+        when(holidaysChecker.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn(0);
+        when(holidaysChecker.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
         assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysFewerThanDaysInPeriod));
     }
 
     @Test
     void validateTest_whenVacationDaysFewerThanDaysInDefinedPeriodWithBanksHolidays_thenInvalidVacationDatesExceptionExceptionIsThrown() {
-        when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 1);
-        when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
+        when(holidaysChecker.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn(1);
+        when(holidaysChecker.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
         assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysFewerThanDaysInPeriodWithBankHolidays));
     }
 
     @Test
     void validateTest_whenVacationDaysMoreThanDaysInDefinedPeriodWithBanksHolidays_thenInvalidVacationDatesExceptionExceptionIsThrown() {
-        when(bankHolidays.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn((short) 1);
-        when(bankHolidays.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
+        when(holidaysChecker.checkNumberOfHolidays(any(LocalDate.class), any(LocalDate.class))).thenReturn(1);
+        when(holidaysChecker.checkIfAHoliday(any(LocalDate.class))).thenReturn(false);
 
         assertThrows(InvalidVacationDatesException.class, () -> vacationDataValidator.validate(vacationWithVacationDaysMoreThanDaysInPeriodWithBankHolidays));
     }

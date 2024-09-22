@@ -10,7 +10,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.development.vacation_calculator.constants.Constants;
 import ru.development.vacation_calculator.model.VacationData;
-import ru.development.vacation_calculator.supportclasses.BankHolidays;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -19,7 +18,7 @@ import java.time.Month;
 class VacationServiceImplTest {
 
     @Mock
-    private BankHolidays bankHolidays;
+    private HolidaysChecker holidaysChecker;
 
     @InjectMocks
     private VacationServiceImpl vacationService;
@@ -103,9 +102,9 @@ class VacationServiceImplTest {
                 (averageDailyIncome * vacationIncludesHoliday.getVacationDays()) * Constants.TAXES / 100) * 100) / 100;
 
 
-        Mockito.when(bankHolidays.checkNumberOfHolidays(vacationIncludesHoliday.getVacationStart(),
+        Mockito.when(holidaysChecker.checkNumberOfHolidays(vacationIncludesHoliday.getVacationStart(),
                         vacationIncludesHoliday.getVacationEnd()))
-                .thenReturn((short) 1);
+                .thenReturn(1);
         double calculatedPayment = vacationService.calculateVacationPay(vacationIncludesHoliday);
 
         Assertions.assertEquals(vacationPayment, calculatedPayment);

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.development.vacation_calculator.exceptions.InvalidVacationDatesException;
 import ru.development.vacation_calculator.model.VacationData;
-import ru.development.vacation_calculator.supportclasses.BankHolidays;
+import ru.development.vacation_calculator.service.HolidaysChecker;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -13,11 +13,11 @@ import java.time.temporal.ChronoUnit;
 @Component
 @Slf4j
 public class VacationDataValidator {
-    private final BankHolidays bankHolidays;
+    private final HolidaysChecker holidaysChecker;
     private final short currentYear;
 
-    public VacationDataValidator(BankHolidays bankHolidays, @Value("${currentYear}") short currentYear) {
-        this.bankHolidays = bankHolidays;
+    public VacationDataValidator(HolidaysChecker holidaysChecker, @Value("${currentYear}") short currentYear) {
+        this.holidaysChecker = holidaysChecker;
         this.currentYear = currentYear;
     }
 
@@ -33,31 +33,16 @@ public class VacationDataValidator {
         if (vacationDays != null && start != null && end != null) {
             validateStartAndEndDates(start, end);
             long numberOfDaysInPeriod = ChronoUnit.DAYS.between(start, end.plusDays(1));
-            short numberOfHolidaysInPeriod = bankHolidays.checkNumberOfHolidays(start, end);
+            int numberOfHolidaysInPeriod = holidaysChecker.checkNumberOfHolidays(start, end);
 
             if (vacationDays > numberOfDaysInPeriod) {
-                //количество дней отпуска больше, чем общее количество дней в промежутке
-                log.warn("Количество дней отпуска выходит за рамки указанного периода. " +
-                        "Дней отпуска {}, общее число дней {}", vacationDays, numberOfDaysInPeriod);
-                throw new InvalidVacationDatesException(String.format("Количество дней отпуска выходит за рамки указанного периода. " +
-                        "Дней отпуска %d, общее число дней %d", vacationDays, numberOfDaysInPeriod));
+                processIfVacationDaysMoreThanDaysInPeriod(vacationDays, numberOfDaysInPeriod);
             } else if (vacationDays < numberOfDaysInPeriod && numberOfHolidaysInPeriod == 0) {
-                //количество дней отпуска меньше, чем общее количество дней в указанном промежутке
-                log.warn("Количество дней отпуска меньше, чем общее количество дней в указанном промежутке. " +
-                        "Дней отпуска {}, общее число дней {}", vacationDays, numberOfDaysInPeriod);
-                throw new InvalidVacationDatesException(String.format("Количество дней отпуска меньше, чем общее количество дней " +
-                        "в указанном промежутке. Дней отпуска %d, общее число дней %d", vacationDays, numberOfDaysInPeriod));
+                processIfVacationDaysFewerThanInPeriod(vacationDays, numberOfDaysInPeriod);
             } else if ((vacationData.getVacationDays() + numberOfHolidaysInPeriod) != numberOfDaysInPeriod) {
-                //количество дней отпуска с учетом праздников превышает общее число дней в промежутке
-                log.warn("Проверьте правильность переданных данных, количество дней отпуска с учетом праздников " +
-                                "отличается от общего количества дней в указанном промежутке. " +
-                                "Количество дней отпуска: {}, начало отпуска - {}, окончание отпуска- {}",
-                        vacationData.getVacationDays(), vacationData.getVacationStart(), vacationData.getVacationEnd());
-                throw new InvalidVacationDatesException(String.format("Проверьте правильность переданных данных, " +
-                                "количество дней отпуска с учетом праздников отличается от общего количества дней в указанном промежутке. " +
-                                "Количество дней отпуска: %d, начало отпуска - %td-%tm-%tY, окончание отпуска- %td-%tm-%tY",
-                        vacationData.getVacationDays(), vacationData.getVacationStart(), vacationData.getVacationStart(),
-                        vacationData.getVacationStart(), vacationData.getVacationEnd(), vacationData.getVacationEnd(), vacationData.getVacationEnd()));
+                processIfNumberOfVacationDaysIsNotEqualToDaysInPeriodWithHolidays(vacationData.getVacationDays(),
+                        vacationData.getVacationStart(),
+                        vacationData.getVacationEnd());
             }
         }
     }
@@ -89,10 +74,35 @@ public class VacationDataValidator {
         }
     }
 
+    private void processIfNumberOfVacationDaysIsNotEqualToDaysInPeriodWithHolidays(Integer vacationDays, LocalDate vacationStart, LocalDate vacationEnd) {
+        log.warn("Проверьте правильность переданных данных, количество дней отпуска с учетом праздников " +
+                        "отличается от общего количества дней в указанном промежутке. " +
+                        "Количество дней отпуска: {}, начало отпуска - {}, окончание отпуска- {}",
+                vacationDays, vacationStart, vacationEnd);
+        throw new InvalidVacationDatesException(String.format("Проверьте правильность переданных данных, " +
+                        "количество дней отпуска с учетом праздников отличается от общего количества дней в указанном промежутке. " +
+                        "Количество дней отпуска: %d, начало отпуска - %td-%tm-%tY, окончание отпуска- %td-%tm-%tY",
+                vacationDays, vacationStart, vacationStart, vacationStart, vacationEnd, vacationEnd, vacationEnd));
+    }
+
+    private void processIfVacationDaysFewerThanInPeriod(Integer vacationDays, long numberOfDaysInPeriod) {
+        log.warn("Количество дней отпуска меньше, чем общее количество дней в указанном промежутке. " +
+                "Дней отпуска {}, общее число дней {}", vacationDays, numberOfDaysInPeriod);
+        throw new InvalidVacationDatesException(String.format("Количество дней отпуска меньше, чем общее количество дней " +
+                "в указанном промежутке. Дней отпуска %d, общее число дней %d", vacationDays, numberOfDaysInPeriod));
+    }
+
+    private void processIfVacationDaysMoreThanDaysInPeriod(Integer vacationDays, long numberOfDaysInPeriod) {
+        log.warn("Количество дней отпуска выходит за рамки указанного периода. " +
+                "Дней отпуска {}, общее число дней {}", vacationDays, numberOfDaysInPeriod);
+        throw new InvalidVacationDatesException(String.format("Количество дней отпуска выходит за рамки указанного периода. " +
+                "Дней отпуска %d, общее число дней %d", vacationDays, numberOfDaysInPeriod));
+    }
+
 
     private void checkIfStartsWithHoliday(LocalDate start) {
         if (start != null) {
-            boolean isAHoliday = bankHolidays.checkIfAHoliday(start);
+            boolean isAHoliday = holidaysChecker.checkIfAHoliday(start);
             if (isAHoliday) {
                 log.warn("Отпуск не может начинаться с выходного дня, пожалуйста, " +
                         "измените дату начала отпуска. Текущая дата начала отпуска - {}", start);

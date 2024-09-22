@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.development.vacation_calculator.constants.Constants;
 import ru.development.vacation_calculator.model.VacationData;
-import ru.development.vacation_calculator.supportclasses.BankHolidays;
 
 import java.time.temporal.ChronoUnit;
 
@@ -13,7 +12,7 @@ import java.time.temporal.ChronoUnit;
 @AllArgsConstructor
 @Slf4j
 public class VacationServiceImpl implements VacationService {
-    private final BankHolidays bankHolidays;
+    private final HolidaysChecker holidaysChecker;
 
     @Override
     public double calculateVacationPay(VacationData vacationData) {
@@ -23,7 +22,7 @@ public class VacationServiceImpl implements VacationService {
             vacationPayment = calculatePayment(vacationData.getSalary(), vacationData.getVacationDays());
         } else { //расчет с указанием четких дат начала и окончания отпуска
             long numberOfDaysInPeriod = ChronoUnit.DAYS.between(vacationData.getVacationStart(), vacationData.getVacationEnd().plusDays(1));
-            short numberOfHolidaysInPeriod = bankHolidays.checkNumberOfHolidays(vacationData.getVacationStart(), vacationData.getVacationEnd());
+            int numberOfHolidaysInPeriod = holidaysChecker.checkNumberOfHolidays(vacationData.getVacationStart(), vacationData.getVacationEnd());
             long vacationDays = (numberOfDaysInPeriod - numberOfHolidaysInPeriod);
             vacationPayment = calculatePayment(vacationData.getSalary(), vacationDays);
         }
